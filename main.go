@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
 
 type Album struct {
@@ -22,6 +23,12 @@ var db *sql.DB
 
 func main() {
 	// Capture connection properties.
+	err_ := godotenv.Load(".env")
+
+	if err_ != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	cfg := mysql.Config{
 		User:   os.Getenv("DBUSER"),
 		Passwd: os.Getenv("DBPASS"),
