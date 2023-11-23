@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
 
 type Album struct {
@@ -17,28 +19,19 @@ type Album struct {
 	Price  float32 `json:"price"`
 }
 
-// album represents data about a record album.
-// type album struct {
-// 	ID     string  `json:"id"`
-// 	Title  string  `json:"tiTle"`
-// 	Artist string  `json:"arTist"`
-// 	Price  float64 `json:"prIce"`
-// }
-
-// // albums slice to seed record album data.
-// var albums = []album{
-// 	{ID: "1", Title: "Blue Train", Artist: "John Coltrane", Price: 56.99},
-// 	{ID: "2", Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
-// 	{ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
-// }
-
 var db *sql.DB
 
 func main() {
 	// Capture connection properties.
+	err_ := godotenv.Load(".env")
+
+	if err_ != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	cfg := mysql.Config{
-		User:   "root",
-		Passwd: "Mishgun01$",
+		User:   os.Getenv("DBUSER"),
+		Passwd: os.Getenv("DBPASS"),
 		Net:    "tcp",
 		Addr:   "127.0.0.1:3306",
 		DBName: "recordings",
@@ -69,11 +62,7 @@ func getAlbums(c *gin.Context) {
 	var albums []Album
 
 	rows, _ := db.Query("SELECT * FROM album")
-	fmt.Println(rows)
-	// if err != nil {
-	// }
 	defer rows.Close()
-	// Loop through rows, using Scan to assign column data to struct fields.
 	for rows.Next() {
 		var alb Album
 		if err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price); err != nil {
@@ -81,13 +70,10 @@ func getAlbums(c *gin.Context) {
 		}
 		albums = append(albums, alb)
 	}
-	// if err := rows.Err(); err != nil {
-	// }
 	c.IndentedJSON(http.StatusOK, albums)
 }
 
-// getAlbumByID locates the album whose ID value matches the id
-// parameter sent by the client, then returns that album as a response.
+// getAlbumByID locates the album whose ID value matches the id parameter sent by the client, then returns that album as a response.
 func getAlbumByID(c *gin.Context) {
 	id := c.Param("id")
 	var alb Album
